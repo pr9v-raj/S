@@ -1,58 +1,94 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>My Study Dashboard</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Study Portal | Lakshya JEE</title>
     <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #0d1117; color: #c9d1d9; padding: 20px; line-height: 1.6; }
-        .container { max-width: 600px; margin: auto; }
-        .card { background: #161b22; border: 1px solid #30363d; padding: 20px; border-radius: 12px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.5); }
-        h1 { color: #58a6ff; margin-top: 0; }
-        .btn { background: #238636; color: white; border: none; padding: 12px; border-radius: 6px; cursor: pointer; width: 100%; font-weight: bold; margin-top: 10px; text-decoration: none; display: block; text-align: center; }
-        .token-box { background: #0d1117; padding: 10px; border-radius: 4px; font-size: 12px; color: #8b949e; word-break: break-all; margin-top: 10px; border: 1px dashed #30363d; }
-        .copy-btn { background: #30363d; font-size: 12px; padding: 5px; margin-top: 5px; cursor: pointer; color: #c9d1d9; border: none; border-radius: 3px; }
+        :root { --bg: #0d1117; --card: #161b22; --text: #c9d1d9; --blue: #58a6ff; --green: #238636; --border: #30363d; }
+        body { font-family: 'Segoe UI', system-ui, sans-serif; background-color: var(--bg); color: var(--text); display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; padding: 20px; }
+        .dashboard { width: 100%; max-width: 450px; background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 24px; box-shadow: 0 8px 32px rgba(0,0,0,0.4); }
+        h1 { font-size: 20px; color: var(--blue); margin: 0 0 10px 0; display: flex; align-items: center; gap: 8px; }
+        .tag { font-size: 12px; background: #23416f; color: #79c0ff; padding: 2px 8px; border-radius: 20px; font-weight: normal; }
+        .info-grid { margin: 20px 0; border-top: 1px solid var(--border); padding-top: 15px; }
+        .info-item { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 14px; }
+        .label { color: #8b949e; }
+        .btn { display: block; width: 100%; padding: 12px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; transition: 0.2s; margin-top: 15px; text-align: center; font-size: 14px; }
+        .btn-green { background-color: var(--green); color: white; }
+        .btn-green:hover { background-color: #2ea043; }
+        .btn-outline { background: transparent; border: 1px solid var(--border); color: var(--blue); margin-top: 10px; }
+        .btn-outline:hover { background: #1f242c; }
+        #status-msg { font-size: 12px; text-align: center; margin-top: 15px; color: #8b949e; }
+        ul { padding-left: 18px; font-size: 13px; color: #8b949e; }
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="card">
-            <h1 id="title">Loading Batch...</h1>
-            <p id="details">Connecting to PWSphere API...</p>
-            <div id="points"></div>
-            
-            <hr style="border: 0; border-top: 1px solid #30363d; margin: 20px 0;">
-            
-            <h3>School PC Login</h3>
-            <p style="font-size: 0.9em;">1. Open <b>pwsphere.vercel.app</b><br>2. Press <b>F12</b> > <b>Console</b><br>3. Click button below & paste!</p>
-            <button class="btn" onclick="copyLoginScript()">📋 Copy Console Script</button>
+
+<div class="dashboard">
+    <h1 id="batch-name">Loading... <span class="tag">JEE 2027</span></h1>
+    
+    <div id="loading-ui">Fetching batch details from PWSphere...</div>
+
+    <div id="main-ui" style="display:none;">
+        <div class="info-grid">
+            <div class="info-item"><span class="label">User:</span> <span>Pranav</span></div>
+            <div class="info-item"><span class="label">Status:</span> <span id="batch-status" style="color:#22c55e"></span></div>
+            <div class="info-item"><span class="label">Start Date:</span> <span id="start-date"></span></div>
         </div>
+        
+        <div id="pointers"></div>
+
+        <button class="btn btn-green" onclick="copyLogin()">📋 Copy School Login Script</button>
+        <a id="direct-link" href="#" target="_blank" class="btn btn-outline">🌐 Open Batch Directly</a>
     </div>
 
-    <script>
-        const BATCH_ID = "6779345c20fa0756e4a7fd08";
-        const TOKEN = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2OWRiYjAwOTRmZDg0MDVhMzU1ODNhMTQiLCJuYW1lIjoiUHJhbmF2ICIsInRlbGVncmFtSWQiOm51bGwsInBob3RvVXJsIjoiaHR0cHM6Ly9jZG4taWNvbnMtcG5nLmZsYXRpY29uLmNvbS81MTIvMzYwNy8zNjA3NDQ0LnBuZyIsImlhdCI6MTc3NjM1MjM3OSwiZXhwIjoxNzc3NjQ4Mzc5fQ.DRp_V6MIpgjY4BH8ka0PhvId3PaueMbtT9pQUmusQrA";
-        
-        // Fetching Data
-        const api = `https://corsproxy.io/?${encodeURIComponent('https://pwsphere.vercel.app/api/BatchInfo?BatchId=' + BATCH_ID + '&Type=details')}`;
-        
-        fetch(api, { headers: { "Cookie": `accessToken=${TOKEN}` } })
-            .then(r => r.json())
-            .then(data => {
-                document.getElementById('title').innerText = "🎯 " + data.slug.split('-').join(' ').toUpperCase();
-                document.getElementById('details').innerText = "Status: " + data.status + " | Price: " + data.priceLabel;
-                // Simple loop for pointers
-                let html = "<ul>";
-                data.config.card.descriptionPointers.forEach(p => { html += `<li>${p.text}</li>`; });
-                document.getElementById('points').innerHTML = html + "</ul>";
-            })
-            .catch(e => { document.getElementById('title').innerText = "Token Expired!"; });
+    <div id="status-msg">Token valid until ~April 28</div>
+</div>
 
-        // Script to log in on school computer
-        function copyLoginScript() {
-            const script = `document.cookie = "accessToken=${TOKEN}; path=/; domain=pwsphere.vercel.app"; location.href="https://pwsphere.vercel.app/study/batches/${BATCH_ID}"`;
-            navigator.clipboard.writeText(script);
-            alert("Script copied! Now paste it in the browser Console (F12) at school.");
-        }
-    </script>
+<script>
+    // --- CONFIGURATION ---
+    const BATCH_ID = "6779345c20fa0756e4a7fd08";
+    const TOKEN = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2OWRiYjAwOTRmZDg0MDVhMzU1ODNhMTQiLCJuYW1lIjoiUHJhbmF2ICIsInRlbGVncmFtSWQiOm51bGwsInBob3RvVXJsIjoiaHR0cHM6Ly9jZG4taWNvbnMtcG5nLmZsYXRpY29uLmNvbS81MTIvMzYwNy8zNjA3NDQ0LnBuZyIsImlhdCI6MTc3NjM1MjM3OSwiZXhwIjoxNzc3NjQ4Mzc5fQ.DRp_V6MIpgjY4BH8ka0PhvId3PaueMbtT9pQUmusQrA";
+    const BASE_URL = `https://pwsphere.vercel.app/study/batches/${BATCH_ID}`;
+    
+    // --- FETCH DATA ---
+    const api = `https://corsproxy.io/?${encodeURIComponent('https://pwsphere.vercel.app/api/BatchInfo?BatchId=' + BATCH_ID + '&Type=details')}`;
+    
+    fetch(api, { headers: { "Authorization": "Bearer " + TOKEN } })
+        .then(r => r.json())
+        .then(data => {
+            document.getElementById('loading-ui').style.display = 'none';
+            document.getElementById('main-ui').style.display = 'block';
+            
+            document.getElementById('batch-name').innerHTML = `🎯 ${data.slug.split('-')[0].toUpperCase()} <span class="tag">JEE 2027</span>`;
+            document.getElementById('batch-status').innerText = data.status;
+            document.getElementById('start-date').innerText = new Date(data.startDate).toLocaleDateString();
+            document.getElementById('direct-link').href = BASE_URL;
+
+            let html = "<ul>";
+            data.config.card.descriptionPointers.slice(0, 3).forEach(p => { html += `<li>${p.text}</li>`; });
+            document.getElementById('pointers').innerHTML = html + "</ul>";
+        })
+        .catch(e => {
+            document.getElementById('loading-ui').innerHTML = "<b style='color:#f85149'>Connection Restricted</b><br>Data hidden for security. Use the button below to log in.";
+            document.getElementById('main-ui').style.display = 'block';
+        });
+
+    // --- UTILITIES ---
+    function copyLogin() {
+        const script = `document.cookie = "accessToken=${TOKEN}; path=/; domain=pwsphere.vercel.app"; location.href="${BASE_URL}"`;
+        
+        // Modern copy method
+        const el = document.createElement('textarea');
+        el.value = script;
+        document.body.appendChild(el);
+        el.select();
+        document.execCommand('copy');
+        document.body.removeChild(el);
+
+        alert("✅ SCRIPT COPIED!\n\n1. Go to the school PC browser.\n2. Open pwsphere.vercel.app\n3. Press F12 -> Console.\n4. Paste & press Enter.");
+    }
+</script>
+
 </body>
 </html>
