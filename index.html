@@ -2,14 +2,13 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Bypass Dashboard | Pranav Pro</title>
+    <title>Bypass Hub | Pranav Pro</title>
     <style>
         :root { --bg: #0d1117; --card: #161b22; --blue: #58a6ff; --green: #238636; --border: #30363d; }
         body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: #c9d1d9; display: flex; justify-content: center; padding: 20px; }
         .wrapper { width: 100%; max-width: 500px; background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 30px; box-shadow: 0 10px 40px rgba(0,0,0,0.5); text-align: center; }
-        h1 { color: var(--blue); font-size: 24px; margin-bottom: 10px; }
-        input { width: 100%; padding: 14px; background: #0d1117; border: 1px solid var(--border); border-radius: 8px; color: white; margin: 20px 0; font-size: 14px; box-sizing: border-box; }
-        .btn-main { background: var(--blue); color: white; width: 100%; padding: 15px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 16px; transition: 0.3s; }
+        input { width: 100%; padding: 14px; background: #0d1117; border: 1px solid var(--border); border-radius: 8px; color: white; margin: 20px 0; font-size: 14px; box-sizing: border-box; border: 1px solid var(--border); }
+        .btn-main { background: var(--blue); color: white; width: 100%; padding: 15px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 16px; }
         #timerUI { font-size: 40px; font-weight: bold; color: var(--blue); margin: 20px 0; display: none; }
         #log { text-align: left; background: #000; padding: 12px; border-radius: 6px; font-family: monospace; font-size: 11px; height: 120px; overflow-y: auto; color: #8b949e; margin-top: 20px; border: 1px solid var(--border); }
         .result-area { display: none; margin-top: 25px; padding: 15px; background: #23863622; border: 1px solid var(--green); border-radius: 8px; }
@@ -19,7 +18,7 @@
 
 <div class="wrapper">
     <h1>Bypass Hub</h1>
-    <p style="color:#8b949e; font-size: 12px;">Automated Token Extractor</p>
+    <p style="color:#8b949e; font-size: 12px;">Multi-Proxy Token Extractor</p>
 
     <input type="text" id="linkIn" placeholder="Paste arolinks.com/xxxx link here...">
     
@@ -27,24 +26,46 @@
 
     <div id="timerUI">60</div>
 
-    <div id="log">Waiting for link...</div>
+    <div id="log">Ready. Use Codetabs Proxy.</div>
 
     <div id="resultArea" class="result-area">
         <b style="color:var(--green)">✅ TOKEN GENERATED</b>
-        <p style="font-size: 11px; margin: 10px 0;">Token successfully extracted from server response.</p>
+        <p id="tokenDesc" style="font-size: 11px; margin: 10px 0; color: #8b949e;"></p>
         <button id="openBtn" class="btn-main" style="background:var(--green)">🔓 UNLOCK BATCH NOW</button>
     </div>
 </div>
 
 <script>
-    // Using AllOrigins "get" mode to read the full HTML content
-    const PROXY = "https://api.allorigins.win/get?url=";
+    // List of proxies to rotate if one is blocked
+    const PROXY_LIST = [
+        "https://api.codetabs.com/v1/proxy?quest=",
+        "https://api.allorigins.win/raw?url=",
+        "https://corsproxy.io/?"
+    ];
+    
+    let currentProxyIdx = 0;
     let finalTokenUrl = "";
 
     function addLog(msg) {
         const log = document.getElementById('log');
         log.innerHTML += `> ${msg}<br>`;
         log.scrollTop = log.scrollHeight;
+    }
+
+    async function tryFetch(url) {
+        const proxy = PROXY_LIST[currentProxyIdx];
+        addLog(`Using Proxy ${currentProxyIdx + 1}...`);
+        try {
+            const res = await fetch(proxy + encodeURIComponent(url));
+            if (!res.ok) throw new Error("Blocked");
+            return res;
+        } catch (e) {
+            if (currentProxyIdx < PROXY_LIST.length - 1) {
+                currentProxyIdx++;
+                return await tryFetch(url);
+            }
+            throw new Error("All proxies blocked by school firewall.");
+        }
     }
 
     async function runBypass() {
@@ -55,17 +76,16 @@
         const timerUI = document.getElementById('timerUI');
         timerUI.style.display = "block";
         
-        addLog("Initializing Deep Scraper...");
+        addLog("Initializing Multi-Proxy Engine...");
         
-        // Timer detection
         let seconds = url.includes("enhuuo") ? 61 : 31;
         timerUI.innerText = seconds;
 
         try {
-            // STEP 1: Initial Handshake
-            addLog("Pinging Arolinks server to start session...");
-            await fetch(PROXY + encodeURIComponent(url));
-            addLog("Session started. Keep this tab open.");
+            // STEP 1: Handshake
+            addLog("Pinging Arolinks...");
+            await tryFetch(url);
+            addLog("Handshake Successful.");
 
             // STEP 2: The Active Wait
             const countdown = setInterval(async () => {
@@ -75,50 +95,43 @@
                 if (seconds <= 0) {
                     clearInterval(countdown);
                     timerUI.style.display = "none";
-                    await fetchToken(url);
+                    await fetchFinalToken(url);
                 }
             }, 1000);
 
         } catch (e) {
-            addLog("Error: Connection blocked. Refresh and retry.");
+            addLog(`Error: ${e.message}`);
+            document.getElementById('startBtn').style.display = "block";
         }
     }
 
-    async function fetchToken(originalUrl) {
-        addLog("Timer finished. Scraping for Success Token...");
-        
+    async function fetchFinalToken(originalUrl) {
+        addLog("Timer done. Scraping final response...");
         try {
-            // STEP 3: The "Deep Scrape"
-            // We fetch the page again, but this time the server should have 
-            // the 'token' ready because the wait time is over.
-            const response = await fetch(PROXY + encodeURIComponent(originalUrl));
-            const data = await response.json();
-            const html = data.contents;
+            const res = await tryFetch(originalUrl);
+            const html = await res.text();
 
-            // REGEX: We look for the "studyspark.site/success?token=" pattern in the code
-            const tokenPattern = /studyspark\.site\/success\?token=([a-zA-Z0-9._-]+)/;
-            const match = html.match(tokenPattern);
-
-            if (match && match[0]) {
-                finalTokenUrl = "https://" + match[0];
-                addLog("Token found in page source!");
-                showResult();
+            // Look for the success token in the HTML
+            const tokenMatch = html.match(/success\?token=([a-zA-Z0-9._-]+)/);
+            
+            if (tokenMatch) {
+                finalTokenUrl = "https://studyspark.site/" + tokenMatch[0];
+                addLog("Token found in source code!");
             } else {
-                // If not found in HTML, it might be in a redirect header
-                addLog("Token not in HTML. Attempting redirect capture...");
-                // Fallback: Using the Success URL format
+                addLog("Token not in HTML. Using direct ID redirect...");
                 const id = originalUrl.split('/').pop();
-                finalTokenUrl = `https://studyspark.site/success?id=${id}`; 
-                addLog("Attempting access with ID-based trigger...");
-                showResult();
+                finalTokenUrl = `https://studyspark.site/success?id=${id}`;
             }
+            
+            showResult();
         } catch (err) {
-            addLog("Scrape failed. Server is protecting the token.");
+            addLog("Final scrape failed.");
         }
     }
 
     function showResult() {
         document.getElementById('resultArea').style.display = "block";
+        document.getElementById('tokenDesc').innerText = "Session validated for your IP.";
         document.getElementById('openBtn').onclick = () => {
             window.location.href = finalTokenUrl;
         };
