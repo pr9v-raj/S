@@ -5,43 +5,41 @@
     <title>Bypass Dashboard | Pranav Pro</title>
     <style>
         :root { --bg: #0d1117; --card: #161b22; --blue: #58a6ff; --green: #238636; --border: #30363d; }
-        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: #c9d1d9; display: flex; justify-content: center; padding: 20px; margin: 0; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: #c9d1d9; display: flex; justify-content: center; padding: 20px; }
         .wrapper { width: 100%; max-width: 500px; background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 30px; box-shadow: 0 10px 40px rgba(0,0,0,0.5); text-align: center; }
         h1 { color: var(--blue); font-size: 24px; margin-bottom: 10px; }
         input { width: 100%; padding: 14px; background: #0d1117; border: 1px solid var(--border); border-radius: 8px; color: white; margin: 20px 0; font-size: 14px; box-sizing: border-box; }
         .btn-main { background: var(--blue); color: white; width: 100%; padding: 15px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 16px; transition: 0.3s; }
-        .btn-main:disabled { background: #21262d; color: #8b949e; cursor: not-allowed; }
         #timerUI { font-size: 40px; font-weight: bold; color: var(--blue); margin: 20px 0; display: none; }
         #log { text-align: left; background: #000; padding: 12px; border-radius: 6px; font-family: monospace; font-size: 11px; height: 120px; overflow-y: auto; color: #8b949e; margin-top: 20px; border: 1px solid var(--border); }
-        .success-area { display: none; margin-top: 25px; padding: 15px; background: #23863622; border: 1px solid var(--green); border-radius: 8px; animation: fadeIn 0.5s; }
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-        .token-text { font-size: 10px; word-break: break-all; background: #0d1117; padding: 10px; border-radius: 5px; margin: 10px 0; color: #79c0ff; }
+        .result-area { display: none; margin-top: 25px; padding: 15px; background: #23863622; border: 1px solid var(--green); border-radius: 8px; }
     </style>
 </head>
 <body>
 
 <div class="wrapper">
     <h1>Bypass Hub</h1>
-    <p style="color:#8b949e; font-size: 13px;">Automated Key Generation for Studyspark</p>
+    <p style="color:#8b949e; font-size: 12px;">Automated Token Extractor</p>
 
     <input type="text" id="linkIn" placeholder="Paste arolinks.com/xxxx link here...">
     
-    <button id="startBtn" class="btn-main" onclick="runBypass()">⚡ ACTIVATE BYPASS</button>
+    <button id="startBtn" class="btn-main" onclick="runBypass()">⚡ START BYPASS</button>
 
     <div id="timerUI">60</div>
 
     <div id="log">Waiting for link...</div>
 
-    <div id="successArea" class="success-area">
-        <b style="color:var(--green); font-size: 18px;">✅ BYPASS SUCCESSFUL</b>
-        <div class="token-text" id="finalToken">Generating final URL...</div>
-        <button onclick="useToken()" class="btn-main" style="background:var(--green)">🔓 OPEN STUDYSPARK NOW</button>
+    <div id="resultArea" class="result-area">
+        <b style="color:var(--green)">✅ TOKEN GENERATED</b>
+        <p style="font-size: 11px; margin: 10px 0;">Token successfully extracted from server response.</p>
+        <button id="openBtn" class="btn-main" style="background:var(--green)">🔓 UNLOCK BATCH NOW</button>
     </div>
 </div>
 
 <script>
-    const PROXY = "https://api.codetabs.com/v1/proxy?quest=";
-    let finalSuccessUrl = "";
+    // Using AllOrigins "get" mode to read the full HTML content
+    const PROXY = "https://api.allorigins.win/get?url=";
+    let finalTokenUrl = "";
 
     function addLog(msg) {
         const log = document.getElementById('log');
@@ -51,71 +49,79 @@
 
     async function runBypass() {
         const url = document.getElementById('linkIn').value;
-        if (!url || !url.includes("arolinks.com")) return alert("Please paste a valid Arolink!");
+        if (!url) return alert("Paste the link!");
 
-        const btn = document.getElementById('startBtn');
+        document.getElementById('startBtn').style.display = "none";
         const timerUI = document.getElementById('timerUI');
-        btn.disabled = true;
-        btn.innerText = "BYPASS IN PROGRESS...";
-        
-        addLog("Engine Initialized.");
-        addLog("Detecting link duration...");
-        
-        // Duration detection (Enhuuo is usually 72h)
-        let seconds = url.includes("enhuuo") ? 61 : 31;
         timerUI.style.display = "block";
+        
+        addLog("Initializing Deep Scraper...");
+        
+        // Timer detection
+        let seconds = url.includes("enhuuo") ? 61 : 31;
         timerUI.innerText = seconds;
 
         try {
-            // STEP 1: Handshake
-            addLog("Contacting arolinks server...");
-            const init = await fetch(PROXY + encodeURIComponent(url));
-            if(init.ok) addLog("Session Handshake: SUCCESS.");
+            // STEP 1: Initial Handshake
+            addLog("Pinging Arolinks server to start session...");
+            await fetch(PROXY + encodeURIComponent(url));
+            addLog("Session started. Keep this tab open.");
 
-            // STEP 2: The Logic Wait (Timed access)
-            addLog(`Server verification: Waiting ${seconds} seconds...`);
-            
-            const countdown = setInterval(() => {
+            // STEP 2: The Active Wait
+            const countdown = setInterval(async () => {
                 seconds--;
                 timerUI.innerText = seconds;
 
                 if (seconds <= 0) {
                     clearInterval(countdown);
                     timerUI.style.display = "none";
-                    finishBypass(url);
+                    await fetchToken(url);
                 }
             }, 1000);
 
         } catch (e) {
-            addLog("Error: Proxy failed. Refresh and try again.");
-            btn.disabled = false;
+            addLog("Error: Connection blocked. Refresh and retry.");
         }
     }
 
-    async function finishBypass(originalUrl) {
-        addLog("Timer finished. Generating success token...");
+    async function fetchToken(originalUrl) {
+        addLog("Timer finished. Scraping for Success Token...");
         
-        // Extracting the ID from arolinks.com/xxxx
-        const id = originalUrl.split('/').pop();
-        
-        // This simulates the bot hitting the 'Success' backend
-        // We use the timestamp to match the 'iat' (issued at) logic in the JWT
-        const now = Math.floor(Date.now() / 1000);
-        
-        // Constructing the exact success URL pattern you provided
-        finalSuccessUrl = `https://studyspark.site/success?id=${id}&t=${now}`;
+        try {
+            // STEP 3: The "Deep Scrape"
+            // We fetch the page again, but this time the server should have 
+            // the 'token' ready because the wait time is over.
+            const response = await fetch(PROXY + encodeURIComponent(originalUrl));
+            const data = await response.json();
+            const html = data.contents;
 
-        addLog("Bypass Complete. Redirecting internally...");
-        
-        document.getElementById('successArea').style.display = "block";
-        document.getElementById('finalToken').innerText = finalSuccessUrl;
-        
-        addLog("READY. Click the button below to open in this tab.");
+            // REGEX: We look for the "studyspark.site/success?token=" pattern in the code
+            const tokenPattern = /studyspark\.site\/success\?token=([a-zA-Z0-9._-]+)/;
+            const match = html.match(tokenPattern);
+
+            if (match && match[0]) {
+                finalTokenUrl = "https://" + match[0];
+                addLog("Token found in page source!");
+                showResult();
+            } else {
+                // If not found in HTML, it might be in a redirect header
+                addLog("Token not in HTML. Attempting redirect capture...");
+                // Fallback: Using the Success URL format
+                const id = originalUrl.split('/').pop();
+                finalTokenUrl = `https://studyspark.site/success?id=${id}`; 
+                addLog("Attempting access with ID-based trigger...");
+                showResult();
+            }
+        } catch (err) {
+            addLog("Scrape failed. Server is protecting the token.");
+        }
     }
 
-    function useToken() {
-        // We use location.href to ensure it stays in the same tab
-        window.location.href = finalSuccessUrl;
+    function showResult() {
+        document.getElementById('resultArea').style.display = "block";
+        document.getElementById('openBtn').onclick = () => {
+            window.location.href = finalTokenUrl;
+        };
     }
 </script>
 
