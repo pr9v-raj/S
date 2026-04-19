@@ -5,88 +5,155 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Study Portal | Lakshya JEE</title>
     <style>
-        :root { --bg: #0d1117; --card: #161b22; --text: #c9d1d9; --blue: #58a6ff; --green: #238636; --border: #30363d; }
-        body { font-family: 'Segoe UI', system-ui, sans-serif; background-color: var(--bg); color: var(--text); display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; padding: 20px; }
-        .dashboard { width: 100%; max-width: 450px; background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 24px; box-shadow: 0 8px 32px rgba(0,0,0,0.4); }
-        h1 { font-size: 20px; color: var(--blue); margin: 0 0 10px 0; display: flex; align-items: center; gap: 8px; }
-        .tag { font-size: 12px; background: #23416f; color: #79c0ff; padding: 2px 8px; border-radius: 20px; font-weight: normal; }
-        .info-grid { margin: 20px 0; border-top: 1px solid var(--border); padding-top: 15px; }
-        .info-item { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 14px; }
+        :root {
+            --bg: #0d1117;
+            --card: #161b22;
+            --text: #c9d1d9;
+            --blue: #58a6ff;
+            --green: #238636;
+            --border: #30363d;
+        }
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .container {
+            width: 90%;
+            max-width: 450px;
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .header h1 {
+            color: var(--blue);
+            margin: 0;
+            font-size: 22px;
+        }
+        .status-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            background: #23416f;
+            color: #79c0ff;
+            margin-top: 8px;
+        }
+        .data-section {
+            background: #0d1117;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 20px;
+            border: 1px dashed var(--border);
+        }
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            font-size: 14px;
+            margin-bottom: 8px;
+        }
         .label { color: #8b949e; }
-        .btn { display: block; width: 100%; padding: 12px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; transition: 0.2s; margin-top: 15px; text-align: center; font-size: 14px; }
-        .btn-green { background-color: var(--green); color: white; }
-        .btn-green:hover { background-color: #2ea043; }
-        .btn-outline { background: transparent; border: 1px solid var(--border); color: var(--blue); margin-top: 10px; }
-        .btn-outline:hover { background: #1f242c; }
-        #status-msg { font-size: 12px; text-align: center; margin-top: 15px; color: #8b949e; }
-        ul { padding-left: 18px; font-size: 13px; color: #8b949e; }
+        .btn {
+            display: block;
+            width: 100%;
+            padding: 14px;
+            border-radius: 6px;
+            border: none;
+            font-weight: bold;
+            cursor: pointer;
+            text-align: center;
+            text-decoration: none;
+            transition: 0.2s;
+            margin-bottom: 10px;
+        }
+        .btn-main { background: var(--green); color: white; }
+        .btn-main:hover { background: #2ea043; }
+        .btn-sub { background: transparent; border: 1px solid var(--border); color: var(--blue); }
+        .btn-sub:hover { background: #1f242c; }
+        .footer {
+            font-size: 11px;
+            color: #8b949e;
+            text-align: center;
+            margin-top: 15px;
+        }
     </style>
 </head>
 <body>
 
-<div class="dashboard">
-    <h1 id="batch-name">Loading... <span class="tag">JEE 2027</span></h1>
-    
-    <div id="loading-ui">Fetching batch details from PWSphere...</div>
-
-    <div id="main-ui" style="display:none;">
-        <div class="info-grid">
-            <div class="info-item"><span class="label">User:</span> <span>Pranav</span></div>
-            <div class="info-item"><span class="label">Status:</span> <span id="batch-status" style="color:#22c55e"></span></div>
-            <div class="info-item"><span class="label">Start Date:</span> <span id="start-date"></span></div>
-        </div>
-        
-        <div id="pointers"></div>
-
-        <button class="btn btn-green" onclick="copyLogin()">📋 Copy School Login Script</button>
-        <a id="direct-link" href="#" target="_blank" class="btn btn-outline">🌐 Open Batch Directly</a>
+<div class="container">
+    <div class="header">
+        <h1 id="b-name">Lakshya JEE 2027</h1>
+        <div class="status-badge" id="b-status">Active Session</div>
     </div>
 
-    <div id="status-msg">Token valid until ~April 28</div>
+    <div class="data-section" id="data-ui">
+        <div class="info-row">
+            <span class="label">User:</span>
+            <span>Pranav</span>
+        </div>
+        <div class="info-row">
+            <span class="label">Token Expiry:</span>
+            <span style="color: #f85149;">April 28, 2026</span>
+        </div>
+        <div id="loader" style="font-size: 12px; text-align: center; margin-top: 10px;">
+            Connecting to API...
+        </div>
+    </div>
+
+    <button class="btn btn-main" onclick="copyBypass()">📋 Copy Bypass Script</button>
+    <a href="https://studyspark.site/batches/6779345c20fa0756e4a7fd08" target="_blank" class="btn btn-sub">🌐 Open StudySpark</a>
+
+    <div class="footer">
+        Step: 1. Copy Script | 2. Open Site | 3. F12 -> Console -> Paste
+    </div>
 </div>
 
 <script>
-    // --- CONFIGURATION ---
+    // YOUR LIVE DATA
     const BATCH_ID = "6779345c20fa0756e4a7fd08";
     const TOKEN = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2OWRiYjAwOTRmZDg0MDVhMzU1ODNhMTQiLCJuYW1lIjoiUHJhbmF2ICIsInRlbGVncmFtSWQiOm51bGwsInBob3RvVXJsIjoiaHR0cHM6Ly9jZG4taWNvbnMtcG5nLmZsYXRpY29uLmNvbS81MTIvMzYwNy8zNjA3NDQ0LnBuZyIsImlhdCI6MTc3NjM1MjM3OSwiZXhwIjoxNzc3NjQ4Mzc5fQ.DRp_V6MIpgjY4BH8ka0PhvId3PaueMbtT9pQUmusQrA";
-    const BASE_URL = `https://pwsphere.vercel.app/study/batches/${BATCH_ID}`;
     
-    // --- FETCH DATA ---
-    const api = `https://corsproxy.io/?${encodeURIComponent('https://pwsphere.vercel.app/api/BatchInfo?BatchId=' + BATCH_ID + '&Type=details')}`;
-    
-    fetch(api, { headers: { "Authorization": "Bearer " + TOKEN } })
-        .then(r => r.json())
-        .then(data => {
-            document.getElementById('loading-ui').style.display = 'none';
-            document.getElementById('main-ui').style.display = 'block';
-            
-            document.getElementById('batch-name').innerHTML = `🎯 ${data.slug.split('-')[0].toUpperCase()} <span class="tag">JEE 2027</span>`;
-            document.getElementById('batch-status').innerText = data.status;
-            document.getElementById('start-date').innerText = new Date(data.startDate).toLocaleDateString();
-            document.getElementById('direct-link').href = BASE_URL;
+    // API CALL LOGIC
+    const api_url = `https://studyspark.site/api/batch/${BATCH_ID}/details`;
+    const proxy = "https://api.allorigins.win/raw?url=";
 
-            let html = "<ul>";
-            data.config.card.descriptionPointers.slice(0, 3).forEach(p => { html += `<li>${p.text}</li>`; });
-            document.getElementById('pointers').innerHTML = html + "</ul>";
-        })
-        .catch(e => {
-            document.getElementById('loading-ui').innerHTML = "<b style='color:#f85149'>Connection Restricted</b><br>Data hidden for security. Use the button below to log in.";
-            document.getElementById('main-ui').style.display = 'block';
-        });
+    fetch(proxy + encodeURIComponent(api_url), {
+        headers: { "Authorization": "Bearer " + TOKEN }
+    })
+    .then(res => res.json())
+    .then(data => {
+        document.getElementById('loader').style.display = 'none';
+        document.getElementById('b-name').innerText = data.name || "Lakshya JEE 2027";
+        document.getElementById('b-status').innerText = "Direct Access: Online";
+    })
+    .catch(err => {
+        document.getElementById('loader').innerText = "API direct access restricted by browser. Use bypass button below.";
+        document.getElementById('loader').style.color = "#8b949e";
+    });
 
-    // --- UTILITIES ---
-    function copyLogin() {
-        const script = `document.cookie = "accessToken=${TOKEN}; path=/; domain=pwsphere.vercel.app"; location.href="${BASE_URL}"`;
+    // BYPASS LOGIC
+    function copyBypass() {
+        const bypassCode = `document.cookie = "accessToken=${TOKEN}; path=/; domain=studyspark.site"; location.href="https://studyspark.site/batches/${BATCH_ID}";`;
         
-        // Modern copy method
         const el = document.createElement('textarea');
-        el.value = script;
+        el.value = bypassCode;
         document.body.appendChild(el);
         el.select();
         document.execCommand('copy');
         document.body.removeChild(el);
 
-        alert("✅ SCRIPT COPIED!\n\n1. Go to the school PC browser.\n2. Open pwsphere.vercel.app\n3. Press F12 -> Console.\n4. Paste & press Enter.");
+        alert("✅ BYPASS SCRIPT COPIED!\n\n1. Open StudySpark\n2. Press F12 -> Console\n3. Paste and press Enter.");
     }
 </script>
 
